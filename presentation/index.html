@@ -80,11 +80,11 @@
 				</section>
 
 				<section>
-					<img data-src="./public/iHealth-BP3.jpg">
+					<img style="width:600px" data-src="./public/iHealth-BP3.jpg">
 				</section>
 
 				<section>
-					<img data-src="./public/iHealth-Products-Family.jpg">
+					<img style="width:600px" data-src="./public/iHealth-Products-Family.jpg">
 				</section>
 
 				<section>
@@ -163,11 +163,69 @@
 				</section>
 
 				<section>
-					<h2>Pub实现--使用cursor</h2>
+					<img style="width:600px" src="./public/Mongo-MiniMongo.png" />
+				</section>
+
+				<section data-markdown>
+					## Pub实现--使用cursor
+
+					```javascript
+					// on the server
+					Meteor.publish('all-measurements', function() {
+						if(!this.userId){
+							return this.ready();
+						}
+						return Measurements.find({userId: this.userId});
+					});
+					```
+
+				</section>
+
+				<section data-markdown>
+						## document结构
+						```javascript
+						{
+							"_id" : "gejtW6RFueN7HayBX",
+							"diastolic" : 104,
+							"systolic" : 177,
+							"heartRate" : 75,
+							"deviceAddress" : "8CDE521448F0",
+							"deviceModel" : "BP5",
+							"MDate" : ISODate("2015-05-08T16:04:02.665Z"),
+							"userId" : "3aSq6HPJPbARajcJQ",
+							"deviceType" : "BP",
+							"dataSouce" : "fake",
+							"createdAt" : ISODate("2016-03-04T15:47:23.521Z")
+						}
+						```
+
+				</section>
+
+				<section data-markdown>
+					## Sub实现
+					```javascript
+						// on the client
+						Meteor.subscribe('all-measurements')
+					```
+					---
+					###### 刚才的Pub实现
+					```javascript
+					// on the server
+					Meteor.publish('all-measurements', function() {
+						if(!this.userId){
+							return this.ready();
+						}
+						return Measurements.find({userId: this.userId});
+					});
+					```
 				</section>
 
 				<section>
-					<h2>Sub实现</h2>
+					<h2>Sub时机</h2>
+					<ul>
+						<li>Router</li>
+						<li>Template/React component</li>
+					</ul>
 				</section>
 
 				<section>
