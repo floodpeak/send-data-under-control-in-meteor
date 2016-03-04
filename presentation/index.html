@@ -29,6 +29,12 @@
 			document.getElementsByTagName( 'head' )[0].appendChild( link );
 		</script>
 
+		<style media="screen">
+			.emphasize-blue {color:#1b91ff}
+			.emphasize-red	{color:#ff2c2d}
+			.emphasize-yellow	{color:#fff68f}
+		</style>
+
 		<!--[if lt IE 9]>
 		<script src="lib/js/html5shiv.js"></script>
 		<![endif]-->
@@ -38,7 +44,6 @@
 
 		<div class="reveal">
 
-			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 				<section>
 					<h1>发配数据</h1>
@@ -106,6 +111,87 @@
 						<li>Pub/Sub的代价</li>
 						<li>Pub粒度的抉择</li>
 					</ul>
+				</section>
+
+				<section>
+						<h2>速览七理念</h2>
+						<ol>
+							<li class="fragment highlight-blue" data-fragment-index="1">Data on the Wire</li>
+							<li>One Language</li>
+							<li class="fragment highlight-blue" data-fragment-index="2">Database Everywhere</li>
+							<li class="fragment highlight-blue" data-fragment-index="3">Latency Compensation</li>
+							<li class="fragment highlight-blue" data-fragment-index="4">Full Stack Reactivity</li>
+							<li>Embrace the Ecosystem</li>
+							<li style="width:500px">Simplicity Equals Productivity</li>
+						</ol>
+				</section>
+
+				<section>
+					<h2>几个基本概念</h2>
+					<ul>
+						<li>MongoDB</li>
+						<li>miniMongo</li>
+						<li>DDP</li>
+					</ul>
+					<aside class="notes">
+							DDP: transfer in both directions
+					</aside>
+				</section>
+
+				<section>
+					<h2>什么是Pub/Sub</h2>
+					<ul>
+						<li>
+							<span class="emphasize-blue">Publication</span>: a named API on the
+							<span class="emphasize-yellow">server</span>
+							that constructs a set of data to send to a client
+						</li>
+						<li>
+							<span class="emphasize-blue">Subscription</span>: initialed on
+							<span class="emphasize-yellow">client</span>, connects to a publication, and receives that data
+						</li>
+					</ul>
+					<p class="fragment" style="text-align:right;">
+						<small>-- <a href="http://guide.meteor.com/data-loading.html#publications-and-subscriptions">The Official Guide</a></small>
+					</p>
+				</section>
+
+				<section>
+					<a href="http://stackoverflow.com/questions/31589216/difference-between-pubsub-and-methods">
+						<img style="width:800px" data-src="./public/PubSub-Sketch.png">
+					</a>
+				</section>
+
+				<section>
+					<h2>Pub实现--使用cursor</h2>
+				</section>
+
+				<section>
+					<h2>Sub实现</h2>
+				</section>
+
+				<section>
+					<h2>Subscription生命周期</h2>
+				</section>
+
+				<section>
+					<h2>Pub实现--使用API</h2>
+				</section>
+
+				<section>
+					<h2>实例</h2>
+				</section>
+
+				<section>
+					<h2>Pub/Sub的代价</h2>
+				</section>
+
+				<section>
+					<h2>Pub粒度的抉择</h2>
+				</section>
+
+				<section>
+					<h2>总结</h2>
 				</section>
 
 				<section>
