@@ -308,6 +308,14 @@
 				</section>
 
 				<section>
+					<h2>observer如何<span class="emphasize-yellow">复用</span></h2>
+					<ul>
+						<li>cursor的selector, filter完全一致则被认定复用</li>
+						<li class="fragment" data-fragment-index="0">不同client sub到的observer也可以相互复用</li>
+					</ul>
+				</section>
+
+				<section>
 					<h2>observer如何<span class="emphasize-yellow">持续</span>跟踪结果集</h2>
 					<ul>
 						<li>如果mongo使用了oplog，优先使用此操作日志进行跟踪</li>
@@ -345,15 +353,176 @@
 				</section>
 
 				<section>
-					<h2>实例</h2>
+					<h2>Pub/Sub的代价</h2>
+					<ul>
+						<li>observer的维护很贵</li>
+						<li class="fragment" data-fragment-index="0">observer的创建和销毁很贵</li>
+						<li class="fragment" data-fragment-index="1">document的传递很贵</li>
+					</ul>
 				</section>
 
 				<section>
-					<h2>Pub/Sub的代价</h2>
+					<h2>Pub/Sub代价的应对</h2>
+					<ul>
+						<li>observer的维护很贵：<a href="https://kadira.io/academy/meteor-performance-101/content/improve-cpu-and-network-usage">尽可能复用</a></li>
+						<li class="fragment" data-fragment-index="0">observer的创建和销毁很贵：<a href="https://github.com/kadirahq/subs-manager">SubsManager</a></li>
+						<li class="fragment" data-fragment-index="1">document的传递很贵</li>
+							<ul>
+								<li class="fragment" data-fragment-index="3">尽可能少的传递document</li>
+								<li class="fragment" data-fragment-index="4">尽可能多的过滤掉field</li>
+								<li class="fragment" data-fragment-index="5">符合最小知识原则</li>
+								<li class="fragment" data-fragment-index="6">提升安全性</li>
+							</ul>
+					</ul>
 				</section>
 
 				<section>
 					<h2>Pub粒度的抉择</h2>
+					<ul>
+						<li>大粒度：降低observer数量，单体observer跟踪document数量多</li>
+						<li class="fragment" data-fragment-index="0">小粒度：增加observer数量，单体observer跟踪document数量少</li>
+					</ul>
+					<p>
+						<strong class="fragment emphasize-yellow" data-fragment-index="1">It depends!</strong>
+					</p>
+				</section>
+
+				<section>
+					<h2>实例</h2>
+				</section>
+
+				<section>
+					<h2>需求</h2>
+					<p>
+						显示用户一年来的血压趋势
+					</p>
+					<p>
+						趋势图包含七个点，等距采样
+					</p>
+				</section>
+
+				<section data-transition="fade-out">
+					<h2>心路历程</h2>
+				</section>
+				<section data-transition="fade-in fade-out">
+					数据库中有某用户测量数据500条
+				</section>
+				<section data-transition="fade-in fade-out">
+					全部返回client，client进行采样计算
+				</section>
+				<section data-transition="fade-in fade-out">
+					这事儿肯定行...
+				</section>
+				<section data-transition="fade-in fade-out">
+					好慢啊
+				</section>
+				<section data-transition="fade-in fade-out">
+					好在只有500条，5000条咋办
+				</section>
+				<section data-transition="fade-in fade-out">
+					这有个强迫症用户一天测十次血压
+				</section>
+				<section data-transition="fade-in fade-out">
+					我靠
+				</section>
+				<section data-transition="fade-in fade-out">
+					需求要求只显示7条数据
+				</section>
+				<section data-transition="fade-in fade-out">
+					用户收到了500条，493条是没用的啊
+				</section>
+				<section data-transition="fade-in fade-out">
+					看来client算这事儿不靠谱
+				</section>
+				<section data-transition="fade-in fade-out">
+					得server来
+				</section>
+				<section data-transition="fade-in fade-out">
+					弄个method得了，调用一下返回七个数据画出来
+				</section>
+				<section data-transition="fade-in fade-out">
+					搞定
+				</section>
+				<section data-transition="fade-in fade-out">
+					<small>产品经理画外音</small>
+					<p>我这刚测了个血压，怎么这个图没动？？？</p>
+				</section>
+				<section data-transition="fade-in fade-out">
+					<small>产品经理画外音</small>
+					<p>你不是说meteor是reactive的吗</p>
+				</section>
+				<section data-transition="fade-in fade-out">
+					<small>产品经理画外音</small>
+					<p>骗子</p>
+				</section>
+				<section data-transition="fade-in fade-out">
+					你，还想要reactive啊
+				</section>
+				<section data-transition="fade-in fade-out">
+					server端reactive只有一条路了
+				</section>
+				<section data-transition="fade-in fade-out">
+					用api来实现publication
+				</section>
+				<section data-transition="fade-in fade-out">
+					<small>产品经理画外音</small>
+					<p>骗子</p>
+				</section>
+				<section data-transition="fade-in">
+					写代码去...
+				</section>
+
+				<section data-markdown>
+					```javascript
+					Meteor.publish("sample-measurements-by-api", function(filter) {
+					  check(filter,Object)
+					  //datetime must be one of the list below
+					  let datetime = filter.datetime
+					  //num is the number of docs client want
+					  let num = filter.num
+
+					  check(datetime, String)
+					  check(num, Number);
+
+					  let threshold = num * 10;
+
+					  if(!_.contains(["day","week","month","year","quarter","isoWeek","minute"]
+					  , datetime)){
+					    return this.ready();
+					  }
+
+					  let self = this;
+					  let collName = "measurements";
+					  let sampleMeasures = [];
+					  let cond = {userId: this.userId}
+					  let refreshSampleMeasures = function(){
+					    _.each(sampleMeasures,function(m){
+					      self.removed(collName, m._id)
+					    });
+					    sampleMeasures = lookForSample(self,_.clone(cond),
+					      datetime,num,threshold);
+					    _.each(sampleMeasures,function(m){
+					      self.added(collName, m._id, m);
+					    });
+					  }
+					  let newestMeasurementHandle = Measurements.find(cond,
+					    {sort:{createdAt:-1},limit:1}).observeChanges({
+					    added:function(id,fields){
+					      refreshSampleMeasures();
+					    },
+					    changed:function(id,fields){
+					      refreshSampleMeasures();
+					    }
+					  });
+
+					  self.ready();
+					  self.onStop(function() {
+					    newestMeasurementHandle.stop();
+					  });
+
+					  return this.ready()
+					})
+					```
 				</section>
 
 				<section>
@@ -361,6 +530,7 @@
 				</section>
 
 				<section>
+					<img style="position:absolute;bottom:0px;left:-50px;width:200px" data-src="./public/Wechat-QR.jpg">
 					<img data-src="./public/Thank-You.png">
 				</section>
 

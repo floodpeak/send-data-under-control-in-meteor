@@ -12,12 +12,24 @@ FlowRouter.route("/all", {
 
 FlowRouter.route("/latest/:limit",{
   action:function(params){
-    ReactLayout.render(MeasurementList,{publishName:'latest-measurements',filter:{limit:parseInt(params.limit)}})
+    ReactLayout.render(MeasurementList,{
+      publishName:'latest-measurements',
+      filter:{limit:parseInt(params.limit)}})
   }
 })
 
 FlowRouter.route("/latestbyapi/:limit",{
   action:function(params){
-    ReactLayout.render(MeasurementList,{publishName:'latest-measurements-by-api',filter:{limit:parseInt(params.limit)}})
+    ReactLayout.render(MeasurementList,{
+      publishName:'latest-measurements-by-api',
+      filter:{limit:parseInt(params.limit)}})
+  }
+})
+
+FlowRouter.route("/samplebyapi/:datetime/:num",{
+  action:function(params){
+    ReactLayout.render(MeasurementList,{
+      publishName:'sample-measurements-by-api',
+      filter:{datetime:params.datetime,num:parseInt(params.num)}})
   }
 })
