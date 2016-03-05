@@ -33,6 +33,8 @@
 			.emphasize-blue {color:#1b91ff}
 			.emphasize-red	{color:#ff2c2d}
 			.emphasize-yellow	{color:#fff68f}
+
+			.websocket-screen-shot {position:absolute;top:20px;left:20px;width:1000px;}
 		</style>
 
 		<!--[if lt IE 9]>
@@ -230,6 +232,87 @@
 
 				<section>
 					<h2>Subscription生命周期</h2>
+				</section>
+
+				<section data-markdown>
+					### 带限制的publication
+					```javascript
+						Meteor.publish('latest-measurements', function(limit) {
+						  if(!this.userId){
+						    return this.ready();
+						  }
+						  return Measurements.find({userId: this.userId},
+							{sort:{MDate:-1},limit:limit});
+						});
+					```
+					-----
+					### 对应的subscribe
+					```javascript
+						Meteor.subscribe('latest-measurements',2)
+					```
+				</section>
+
+				<section>
+					<img style="width:1000px;" data-src="./public/Websocket-ScreenShot.png">
+					<img class="fragment fade-in websocket-screen-shot" data-fragment-index="0" data-src="./public/Websocket-ScreenShot1.png">
+					<img class="fragment fade-in websocket-screen-shot" data-fragment-index="1" data-src="./public/Websocket-ScreenShot2.png">
+					<img class="fragment fade-in websocket-screen-shot" data-fragment-index="2" data-src="./public/Websocket-ScreenShot3.png">
+					<img class="fragment fade-in websocket-screen-shot" data-fragment-index="3" data-src="./public/Websocket-ScreenShot4.png">
+					<img class="fragment fade-in websocket-screen-shot" data-fragment-index="4" data-src="./public/Websocket-ScreenShot5.png">
+					<img class="fragment fade-in websocket-screen-shot" data-fragment-index="5" data-src="./public/Websocket-ScreenShot6.png">
+					<img class="fragment fade-in websocket-screen-shot" data-fragment-index="6" data-src="./public/Websocket-ScreenShot7.png">
+					<img class="fragment fade-in websocket-screen-shot" data-fragment-index="7" data-src="./public/Websocket-ScreenShot8.png">
+				</section>
+
+				<section>
+					<h2>Subscription生命周期总结</h2>
+					<ol>
+						<li>client通过DDP发送sub消息到server，包含pub的名字及参数</li>
+						<li class="fragment" data-fragment-index="0">server运行pub的function</li>
+						<li class="fragment" data-fragment-index="1">server根据返回值判断是否有可以复用的observer，如果有直接复用，没有建立新的observer</li>
+						<li class="fragment" data-fragment-index="2">observer获取命中cursor的documents，通过added message全部传回client，存入minimongo</li>
+						<li class="fragment" data-fragment-index="3">pub的function发送ready message到client</li>
+						<li class="fragment" data-fragment-index="4">sub进入ready状态，pub的function退出</li>
+					</ol>
+				</section>
+
+				<section>
+					<h2>Subscription生命周期总结</h2>
+					<ol start="7">
+						<li>observer<span class="emphasize-yellow">持续</span>跟踪cursor的结果集</li>
+						<li class="fragment" data-fragment-index="0">observer发现有新document命中后，通过<span class="emphasize-yellow">added</span> message传递给客户端</li>
+						<li class="fragment" data-fragment-index="1">observer发现有document不再命中后，通过<span class="emphasize-yellow">removed</span> message通知客户端删除minimongo相应document</li>
+						<li class="fragment" data-fragment-index="2">observer发现之前命中的document，field有变化，通过<span class="emphasize-yellow">changed</span> message传递给客户端</li>
+					</ol>
+				</section>
+
+				<section>
+					<h2>Subscription生命周期总结</h2>
+					<ol start="11">
+						<li>client向server发送unsub message用于结束sub</li>
+						<li class="fragment" data-fragment-index="0">observer退出</li>
+						<li class="fragment" data-fragment-index="1">server向client发出removed message，用于清除应被删除的document</li>
+						<li class="fragment" data-fragment-index="2">server向client发出nosub message，通知client该sub已退出</li>
+					</ol>
+				</section>
+
+				<section>
+					<h2>observer如何<span class="emphasize-yellow">知道</span>客户端有什么document</h2>
+					<ul>
+						<li>server为每一个client建立一个mergebox</li>
+						<li class="fragment" data-fragment-index="0">mergebox用于记录已经发往该client的所有document</li>
+						<li class="fragment" data-fragment-index="1">added, changed, removed message是document在mergebox中进行比较后发给client</li>
+						<li class="fragment" data-fragment-index="2">mergebox的比较只比较第一级field，也即两个不同的sub过滤了同一个field的不同子field，后sub的子field无法传给client</li>
+						<li class="fragment" data-fragment-index="3">使用有嵌套的document时<span class="emphasize-blue">注意</span>此问题</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>observer如何<span class="emphasize-yellow">持续</span>跟踪结果集</h2>
+					<ul>
+						<li>如果mongo使用了oplog，优先使用此操作日志进行跟踪</li>
+						<li>否则使用轮询</li>
+					</ul>
 				</section>
 
 				<section>
