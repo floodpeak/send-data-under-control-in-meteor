@@ -45,8 +45,6 @@ Meteor.publish("sample-measurements-by-api", function(filter) {
   self.onStop(function() {
     newestMeasurementHandle.stop();
   });
-
-  return this.ready()
 })
 
 //pub is the publication
